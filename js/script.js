@@ -311,8 +311,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 name: "Abir Hussain",
                 role: "CEO & Founder",
                 country: "🇧🇩 (Bangladesh)",
-                experience: "4+ Years",
-                skills: ["Website Development", "Project Management", "Community Management"]
+                experience: "Beginner in Web Development and basic to intermediate skilled in photo editing and graphic designing",
+                skills: ["Website Development", "Project Management", "Community Management", "Photo Editing", "Graphic Design", "Roblox Game Development"]
             }
         ],
         "3d": [
@@ -326,11 +326,11 @@ document.addEventListener("DOMContentLoaded", function () {
         ],
         design: [
             {
-                name: "Hiring",
+                name: "Abir Hussain",
                 role: "Graphic Designer",
-                country: "🌍 (Open Worldwide)",
-                experience: "—",
-                skills: ["Applications Open"]
+                country: "🇧🇩 (Bangladesh)",
+                experience: "3+ Years.",
+                skills: ["Basic to Intermediate graphics designer  with 3+ years of experience in creating visually appealing designs of banners,posters,billboards etc."]
             }
         ],
         video: [
@@ -344,11 +344,11 @@ document.addEventListener("DOMContentLoaded", function () {
         ],
         photo: [
             {
-                name: "Hiring",
+                name: "Abir Hussain",
                 role: "Photo Editor",
-                country: "🌍 (Open Worldwide)",
-                experience: "—",
-                skills: ["Applications Open"]
+                country: "🇧🇩 (Bangladesh)",
+                experience: "3+ Years",
+                skills: ["Basic to Intermediate photo editor with 3+ years of experience in editing photos for social media, websites, and other digital platforms."]
             }
         ],
         web: [
@@ -356,7 +356,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 name: "Abir Hussain",
                 role: "Lead Web Developer",
                 country: "🇧🇩 (Bangladesh)",
-                experience: "4+ Years",
+                experience: "Beginner to Intermediate",
                 skills: ["HTML", "CSS", "JavaScript", "Frontend Development"]
             }
         ]
@@ -394,51 +394,3 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 });
-/*==============================
-LIVE VISITOR COUNTER
-==============================*/
-
-const COUNTER_NAMESPACE = "octagon-development-community";
-const COUNTER_KEY = "website";
-
-const digitBoxes = document.querySelectorAll("#counterDigits span");
-
-async function updateVisitorCounter() {
-
-    try {
-
-        const res = await fetch(
-            `https://api.countapi.xyz/hit/${COUNTER_NAMESPACE}/${COUNTER_KEY}`
-        );
-
-        const data = await res.json();
-
-        let value = String(data.value).padStart(8,"0");
-
-        digitBoxes.forEach((box,index)=>{
-
-            if(box.textContent!==value[index]){
-
-                box.classList.remove("flip");
-
-                void box.offsetWidth;
-
-                box.textContent=value[index];
-
-                box.classList.add("flip");
-
-            }
-
-        });
-
-    }
-
-    catch(err){
-
-        console.log(err);
-
-    }
-
-}
-
-updateVisitorCounter();
