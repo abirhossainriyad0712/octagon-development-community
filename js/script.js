@@ -394,3 +394,51 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 });
+/*==============================
+LIVE VISITOR COUNTER
+==============================*/
+
+const COUNTER_NAMESPACE = "octagon-development-community";
+const COUNTER_KEY = "website";
+
+const digitBoxes = document.querySelectorAll("#counterDigits span");
+
+async function updateVisitorCounter() {
+
+    try {
+
+        const res = await fetch(
+            `https://api.countapi.xyz/hit/${COUNTER_NAMESPACE}/${COUNTER_KEY}`
+        );
+
+        const data = await res.json();
+
+        let value = String(data.value).padStart(8,"0");
+
+        digitBoxes.forEach((box,index)=>{
+
+            if(box.textContent!==value[index]){
+
+                box.classList.remove("flip");
+
+                void box.offsetWidth;
+
+                box.textContent=value[index];
+
+                box.classList.add("flip");
+
+            }
+
+        });
+
+    }
+
+    catch(err){
+
+        console.log(err);
+
+    }
+
+}
+
+updateVisitorCounter();

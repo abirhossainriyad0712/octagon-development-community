@@ -1014,3 +1014,64 @@ footer p {
         font-size: 15px;
     }
 }
+/* ================= VISITOR COUNTER ================= */
+
+.visitorCounter{
+    margin-top:40px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:15px;
+}
+
+.visitorLabel{
+    font-family:'Orbitron',sans-serif;
+    color:#66d9ff;
+    letter-spacing:3px;
+    font-size:15px;
+}
+
+.counterDigits{
+    display:flex;
+    gap:8px;
+}
+
+.counterDigits span{
+    width:42px;
+    height:58px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:rgba(255,255,255,.08);
+
+    border:1px solid rgba(0,200,255,.35);
+
+    border-radius:12px;
+
+    font-size:28px;
+
+    font-weight:bold;
+
+    font-family:'Orbitron',sans-serif;
+
+    color:#00d4ff;
+
+    box-shadow:
+        0 0 12px rgba(0,200,255,.35),
+        inset 0 0 15px rgba(255,255,255,.05);
+
+    transition:.4s;
+}
+
+.counterDigits span.flip{
+
+    transform:translateY(-12px) scale(1.15);
+
+    color:white;
+
+    box-shadow:
+    0 0 20px #00d4ff,
+    0 0 45px #00d4ff;
+}
