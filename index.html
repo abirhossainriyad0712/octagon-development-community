@@ -237,6 +237,124 @@
         </p>
         <button class="joinBtn" id="applyNow">Apply Now</button>
     </section>
+<!-- ============================= -->
+<!-- Rating & Reviews Section      -->
+<!-- ============================= -->
+
+<section class="reviews-section" id="reviews">
+
+    <h2>What People Say</h2>
+
+    <p class="reviews-subtitle">
+        We'd love to hear your experience with Octagon Development Community.
+    </p>
+
+    <!-- Buttons -->
+    <div class="review-buttons">
+
+        <button type="button" id="openRateBtn" class="review-main-btn">
+            ⭐ Rate Us
+        </button>
+
+        <button type="button" id="openRatingsBtn" class="review-main-btn">
+            ⭐ View Ratings
+        </button>
+
+    </div>
+
+
+    <!-- ============================= -->
+    <!-- Rate Box                      -->
+    <!-- ============================= -->
+
+    <div id="rateBox" class="review-panel">
+
+        <h3>Rate Our Service</h3>
+
+        <input
+            type="text"
+            id="reviewName"
+            placeholder="Your Name"
+            maxlength="50"
+        >
+
+        <div class="star-rating" id="starRating">
+
+            <button type="button" data-rating="1">★</button>
+            <button type="button" data-rating="2">★</button>
+            <button type="button" data-rating="3">★</button>
+            <button type="button" data-rating="4">★</button>
+            <button type="button" data-rating="5">★</button>
+
+        </div>
+
+        <textarea
+            id="reviewText"
+            placeholder="Write your review..."
+            maxlength="500"
+        ></textarea>
+
+        <button
+            type="button"
+            id="submitReview"
+            class="submit-review-btn"
+        >
+            Submit Review
+        </button>
+
+        <p id="reviewMessage"></p>
+
+    </div>
+
+
+    <!-- ============================= -->
+    <!-- Ratings Box                   -->
+    <!-- ============================= -->
+
+    <div id="ratingsBox" class="review-panel">
+
+        <h3>Customer Ratings</h3>
+
+        <div class="rating-summary">
+
+            <div
+                class="average-rating"
+                id="averageRating"
+            >
+                0.0
+            </div>
+
+            <div
+                class="average-stars"
+                id="averageStars"
+            >
+                ☆☆☆☆☆
+            </div>
+
+            <div
+                class="review-count"
+                id="reviewCount"
+            >
+                0 reviews
+            </div>
+
+        </div>
+
+
+        <div
+            class="reviews-list"
+            id="reviewsList"
+        >
+
+            <p class="loading-reviews">
+                Loading ratings...
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
 
     <!-- ================= FOOTER ================= -->
     <footer id="contact">
@@ -345,6 +463,991 @@
     data-goatcounter="https://octagondevelopmentcommunity.goatcounter.com/count"
     async
     src="https://gc.zgo.at/count.js">
+</script>
+<script type="module">
+
+    import { initializeApp }
+        from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+
+    import {
+        getFirestore,
+        collection,
+        addDoc,
+        getDocs,
+        serverTimestamp
+    }
+        from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+    /* ============================= */
+    /* Firebase Configuration        */
+    /* ============================= */
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCCNbhdNlKhi3HVt4nwvOKuhIV5afCw4tQ",
+        authDomain: "octagon-development-community.firebaseapp.com",
+        projectId: "octagon-development-community",
+        storageBucket: "octagon-development-community.firebasestorage.app",
+        messagingSenderId: "861729221423",
+        appId: "1:861729221423:web:987c3588ccee59282e4fda",
+        measurementId: "G-HN29FG1RSZ"
+    };
+
+
+    /* ============================= */
+    /* Initialize Firebase           */
+    /* ============================= */
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+
+    /* ============================= */
+    /* Elements                      */
+    /* ============================= */
+
+    const starButtons =
+        document.querySelectorAll("#starRating button");
+
+    const nameInput =
+        document.getElementById("reviewName");
+
+    const reviewInput =
+        document.getElementById("reviewText");
+
+    const submitButton =
+        document.getElementById("submitReview");
+
+    const message =
+        document.getElementById("reviewMessage");
+
+    const reviewsList =
+        document.getElementById("reviewsList");
+
+    const averageRating =
+        document.getElementById("averageRating");
+
+    const averageStars =
+        document.getElementById("averageStars");
+
+    const reviewCount =
+        document.getElementById("reviewCount");
+
+
+    let selectedRating = 0;
+
+
+    /* ============================= */
+    /* Star Selection                */
+    /* ============================= */
+
+    starButtons.forEach(button => {
+
+        button.addEventListener("click", () => {
+
+            selectedRating =
+                Number(button.dataset.rating);
+
+            starButtons.forEach(star => {
+
+                const rating =
+                    Number(star.dataset.rating);
+
+                star.classList.toggle(
+                    "selected",
+                    rating <= selectedRating
+                );
+
+            });
+
+        });
+
+    });
+
+
+    /* ============================= */
+    /* Create Stars                  */
+    /* ============================= */
+
+    function createStars(rating) {
+
+        let stars = "";
+
+        for (let i = 1; i <= 5; i++) {
+
+            stars += i <= rating ? "★" : "☆";
+
+        }
+
+        return stars;
+    }
+
+
+    /* ============================= */
+    /* Load Reviews                  */
+    /* ============================= */
+
+    async function loadReviews() {
+
+        try {
+
+            const snapshot =
+                await getDocs(collection(db, "reviews"));
+
+            const reviews = [];
+
+            snapshot.forEach(doc => {
+
+                reviews.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
+
+            });
+
+
+            /* Newest first */
+
+            reviews.sort((a, b) => {
+
+                const timeA =
+                    a.createdAt?.toMillis?.() || 0;
+
+                const timeB =
+                    b.createdAt?.toMillis?.() || 0;
+
+                return timeB - timeA;
+
+            });
+
+
+            /* Clear list */
+
+            reviewsList.innerHTML = "";
+
+
+            /* No reviews */
+
+            if (reviews.length === 0) {
+
+                reviewsList.innerHTML =
+                    `<p class="loading-reviews">
+                        No reviews yet. Be the first one!
+                    </p>`;
+
+            }
+
+
+            /* Calculate average */
+
+            let totalRating = 0;
+
+
+            reviews.forEach(review => {
+
+                totalRating += Number(review.rating);
+
+
+                const card =
+                    document.createElement("div");
+
+                card.className = "review-card";
+
+                card.innerHTML = `
+                    <div class="review-card-name">
+                        ${escapeHTML(review.name)}
+                    </div>
+
+                    <div class="review-card-stars">
+                        ${createStars(Number(review.rating))}
+                    </div>
+
+                    <div class="review-card-text">
+                        ${escapeHTML(review.review)}
+                    </div>
+                `;
+
+                reviewsList.appendChild(card);
+
+            });
+
+
+            const average =
+                reviews.length
+                    ? totalRating / reviews.length
+                    : 0;
+
+
+            averageRating.textContent =
+                average.toFixed(1);
+
+            averageStars.textContent =
+                createStars(Math.round(average));
+
+            reviewCount.textContent =
+                `${reviews.length} ${
+                    reviews.length === 1
+                        ? "review"
+                        : "reviews"
+                }`;
+
+
+        } catch (error) {
+
+            console.error(
+                "Error loading reviews:",
+                error
+            );
+
+            reviewsList.innerHTML =
+                `<p class="loading-reviews">
+                    Unable to load reviews right now.
+                </p>`;
+
+        }
+
+    }
+
+
+    /* ============================= */
+    /* Prevent HTML Injection         */
+    /* ============================= */
+
+    function escapeHTML(text) {
+
+        const div =
+            document.createElement("div");
+
+        div.textContent = text;
+
+        return div.innerHTML;
+
+    }
+
+
+    /* ============================= */
+    /* Submit Review                 */
+    /* ============================= */
+
+    submitButton.addEventListener(
+        "click",
+        async () => {
+
+            const name =
+                nameInput.value.trim();
+
+            const review =
+                reviewInput.value.trim();
+
+
+            /* Validation */
+
+            if (!name) {
+
+                message.textContent =
+                    "Please enter your name.";
+
+                message.style.color =
+                    "#ff5c5c";
+
+                return;
+
+            }
+
+
+            if (!selectedRating) {
+
+                message.textContent =
+                    "Please select a rating.";
+
+                message.style.color =
+                    "#ff5c5c";
+
+                return;
+
+            }
+
+
+            if (!review) {
+
+                message.textContent =
+                    "Please write a review.";
+
+                message.style.color =
+                    "#ff5c5c";
+
+                return;
+
+            }
+
+
+            try {
+
+                submitButton.disabled = true;
+
+                submitButton.textContent =
+                    "Submitting...";
+
+                message.textContent = "";
+
+
+                /* Save to Firestore */
+
+                await addDoc(
+                    collection(db, "reviews"),
+                    {
+                        name: name,
+                        rating: selectedRating,
+                        review: review,
+                        createdAt: serverTimestamp()
+                    }
+                );
+
+
+                /* Success */
+
+                message.textContent =
+                    "Review submitted successfully! ⭐";
+
+                message.style.color =
+                    "#00ff99";
+
+
+                /* Reset form */
+
+                nameInput.value = "";
+                reviewInput.value = "";
+
+                selectedRating = 0;
+
+                starButtons.forEach(star => {
+                    star.classList.remove("selected");
+                });
+
+
+                /* Reload reviews */
+
+                await loadReviews();
+
+
+            } catch (error) {
+
+                console.error(
+                    "Error submitting review:",
+                    error
+                );
+
+                message.textContent =
+                    "Something went wrong. Please try again.";
+
+                message.style.color =
+                    "#ff5c5c";
+
+            }
+
+
+            submitButton.disabled = false;
+
+            submitButton.textContent =
+                "Submit Review";
+
+        }
+    );
+
+
+    /* ============================= */
+    /* Initial Load                  */
+    /* ============================= */
+
+    loadReviews();
+
+</script>
+<script type="module">
+
+    /* ================================= */
+    /* FIREBASE IMPORTS                  */
+    /* ================================= */
+
+    import { initializeApp }
+        from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+
+    import {
+        getFirestore,
+        collection,
+        addDoc,
+        getDocs,
+        serverTimestamp
+    }
+        from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+    /* ================================= */
+    /* FIREBASE CONFIG                   */
+    /* ================================= */
+
+    const firebaseConfig = {
+
+        apiKey: "AIzaSyCCNbhdNlKhi3HVt4nwvOKuhIV5afCw4tQ",
+
+        authDomain:
+            "octagon-development-community.firebaseapp.com",
+
+        projectId:
+            "octagon-development-community",
+
+        storageBucket:
+            "octagon-development-community.firebasestorage.app",
+
+        messagingSenderId:
+            "861729221423",
+
+        appId:
+            "1:861729221423:web:987c3588ccee59282e4fda",
+
+        measurementId:
+            "G-HN29FG1RSZ"
+    };
+
+
+    /* ================================= */
+    /* INITIALIZE FIREBASE               */
+    /* ================================= */
+
+    const app =
+        initializeApp(firebaseConfig);
+
+    const db =
+        getFirestore(app);
+
+
+    /* ================================= */
+    /* GET HTML ELEMENTS                 */
+    /* ================================= */
+
+    const openRateBtn =
+        document.getElementById("openRateBtn");
+
+    const openRatingsBtn =
+        document.getElementById("openRatingsBtn");
+
+    const rateBox =
+        document.getElementById("rateBox");
+
+    const ratingsBox =
+        document.getElementById("ratingsBox");
+
+    const starButtons =
+        document.querySelectorAll(
+            "#starRating button"
+        );
+
+    const nameInput =
+        document.getElementById("reviewName");
+
+    const reviewInput =
+        document.getElementById("reviewText");
+
+    const submitButton =
+        document.getElementById("submitReview");
+
+    const message =
+        document.getElementById("reviewMessage");
+
+    const reviewsList =
+        document.getElementById("reviewsList");
+
+    const averageRating =
+        document.getElementById("averageRating");
+
+    const averageStars =
+        document.getElementById("averageStars");
+
+    const reviewCount =
+        document.getElementById("reviewCount");
+
+
+    /* ================================= */
+    /* VARIABLES                         */
+    /* ================================= */
+
+    let selectedRating = 0;
+
+
+    /* ================================= */
+    /* RATE US BUTTON                    */
+    /* ================================= */
+
+    openRateBtn.addEventListener(
+        "click",
+        () => {
+
+            rateBox.classList.toggle("active");
+
+            ratingsBox.classList.remove("active");
+
+        }
+    );
+
+
+    /* ================================= */
+    /* VIEW RATINGS BUTTON               */
+    /* ================================= */
+
+    openRatingsBtn.addEventListener(
+        "click",
+        async () => {
+
+            ratingsBox.classList.toggle("active");
+
+            rateBox.classList.remove("active");
+
+
+            if (
+                ratingsBox.classList.contains("active")
+            ) {
+
+                await loadReviews();
+
+            }
+
+        }
+    );
+
+
+    /* ================================= */
+    /* STAR SELECTION                    */
+    /* ================================= */
+
+    starButtons.forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    selectedRating =
+                        Number(
+                            button.dataset.rating
+                        );
+
+
+                    starButtons.forEach(
+                        star => {
+
+                            const rating =
+                                Number(
+                                    star.dataset.rating
+                                );
+
+
+                            star.classList.toggle(
+                                "selected",
+                                rating <=
+                                selectedRating
+                            );
+
+                        }
+                    );
+
+                }
+            );
+
+        }
+    );
+
+
+    /* ================================= */
+    /* CREATE STAR DISPLAY               */
+    /* ================================= */
+
+    function createStars(rating) {
+
+        let stars = "";
+
+        for (
+            let i = 1;
+            i <= 5;
+            i++
+        ) {
+
+            stars +=
+                i <= rating
+                    ? "★"
+                    : "☆";
+
+        }
+
+        return stars;
+
+    }
+
+
+    /* ================================= */
+    /* ESCAPE HTML                       */
+    /* ================================= */
+
+    function escapeHTML(text) {
+
+        const div =
+            document.createElement("div");
+
+        div.textContent = text;
+
+        return div.innerHTML;
+
+    }
+
+
+    /* ================================= */
+    /* LOAD REVIEWS                      */
+    /* ================================= */
+
+    async function loadReviews() {
+
+        try {
+
+            reviewsList.innerHTML =
+                `<p class="loading-reviews">
+                    Loading ratings...
+                </p>`;
+
+
+            const snapshot =
+                await getDocs(
+                    collection(
+                        db,
+                        "reviews"
+                    )
+                );
+
+
+            const reviews = [];
+
+
+            snapshot.forEach(
+                doc => {
+
+                    reviews.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+
+                }
+            );
+
+
+            /* ============================= */
+            /* SORT NEWEST FIRST              */
+            /* ============================= */
+
+            reviews.sort(
+                (a, b) => {
+
+                    const timeA =
+                        a.createdAt?.toMillis?.()
+                        || 0;
+
+                    const timeB =
+                        b.createdAt?.toMillis?.()
+                        || 0;
+
+                    return timeB - timeA;
+
+                }
+            );
+
+
+            reviewsList.innerHTML = "";
+
+
+            /* ============================= */
+            /* NO REVIEWS                    */
+            /* ============================= */
+
+            if (reviews.length === 0) {
+
+                reviewsList.innerHTML =
+                    `<p class="loading-reviews">
+                        No ratings yet. Be the first one!
+                    </p>`;
+
+            }
+
+
+            /* ============================= */
+            /* CALCULATE AVERAGE             */
+            /* ============================= */
+
+            let totalRating = 0;
+
+
+            reviews.forEach(
+                review => {
+
+                    totalRating +=
+                        Number(review.rating);
+
+
+                    /* ========================= */
+                    /* CREATE REVIEW CARD        */
+                    /* ========================= */
+
+                    const card =
+                        document.createElement("div");
+
+                    card.className =
+                        "review-card";
+
+
+                    card.innerHTML = `
+
+                        <div class="review-card-name">
+                            ${escapeHTML(
+                                review.name
+                            )}
+                        </div>
+
+                        <div class="review-card-stars">
+                            ${createStars(
+                                Number(
+                                    review.rating
+                                )
+                            )}
+                        </div>
+
+                        <div class="review-card-text">
+                            ${escapeHTML(
+                                review.review
+                            )}
+                        </div>
+
+                    `;
+
+
+                    reviewsList.appendChild(card);
+
+                }
+            );
+
+
+            /* ============================= */
+            /* AVERAGE RATING                */
+            /* ============================= */
+
+            const average =
+                reviews.length > 0
+                    ? totalRating /
+                      reviews.length
+                    : 0;
+
+
+            averageRating.textContent =
+                average.toFixed(1);
+
+
+            averageStars.textContent =
+                createStars(
+                    Math.round(average)
+                );
+
+
+            reviewCount.textContent =
+                `${reviews.length} ${
+                    reviews.length === 1
+                        ? "review"
+                        : "reviews"
+                }`;
+
+        }
+
+
+        catch (error) {
+
+            console.error(
+                "Error loading reviews:",
+                error
+            );
+
+
+            reviewsList.innerHTML =
+                `<p class="loading-reviews">
+                    Unable to load ratings right now.
+                </p>`;
+
+        }
+
+    }
+
+
+    /* ================================= */
+    /* SUBMIT REVIEW                     */
+    /* ================================= */
+
+    submitButton.addEventListener(
+        "click",
+        async () => {
+
+            const name =
+                nameInput.value.trim();
+
+            const review =
+                reviewInput.value.trim();
+
+
+            /* ============================= */
+            /* VALIDATION                    */
+            /* ============================= */
+
+            if (!name) {
+
+                message.textContent =
+                    "Please enter your name.";
+
+                message.style.color =
+                    "#ff5c5c";
+
+                return;
+
+            }
+
+
+            if (!selectedRating) {
+
+                message.textContent =
+                    "Please select a rating.";
+
+                message.style.color =
+                    "#ff5c5c";
+
+                return;
+
+            }
+
+
+            if (!review) {
+
+                message.textContent =
+                    "Please write a review.";
+
+                message.style.color =
+                    "#ff5c5c";
+
+                return;
+
+            }
+
+
+            try {
+
+                submitButton.disabled = true;
+
+                submitButton.textContent =
+                    "Submitting...";
+
+                message.textContent = "";
+
+
+                /* ============================= */
+                /* SAVE TO FIRESTORE             */
+                /* ============================= */
+
+                await addDoc(
+                    collection(
+                        db,
+                        "reviews"
+                    ),
+                    {
+
+                        name: name,
+
+                        rating:
+                            selectedRating,
+
+                        review: review,
+
+                        createdAt:
+                            serverTimestamp()
+
+                    }
+                );
+
+
+                /* ============================= */
+                /* SUCCESS                       */
+                /* ============================= */
+
+                message.textContent =
+                    "Review submitted successfully! ⭐";
+
+                message.style.color =
+                    "#00ff99";
+
+
+                /* ============================= */
+                /* RESET FORM                    */
+                /* ============================= */
+
+                nameInput.value = "";
+
+                reviewInput.value = "";
+
+                selectedRating = 0;
+
+
+                starButtons.forEach(
+                    star => {
+
+                        star.classList.remove(
+                            "selected"
+                        );
+
+                    }
+                );
+
+
+                /* ============================= */
+                /* SHOW RATINGS                  */
+                /* ============================= */
+
+                await loadReviews();
+
+
+                rateBox.classList.remove(
+                    "active"
+                );
+
+                ratingsBox.classList.add(
+                    "active"
+                );
+
+            }
+
+
+            catch (error) {
+
+                console.error(
+                    "Error submitting review:",
+                    error
+                );
+
+
+                message.textContent =
+                    "Something went wrong. Please try again.";
+
+                message.style.color =
+                    "#ff5c5c";
+
+            }
+
+
+            submitButton.disabled = false;
+
+            submitButton.textContent =
+                "Submit Review";
+
+        }
+    );
+
 </script>
 </body>
 
