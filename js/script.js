@@ -1,7 +1,28 @@
 // ===============================
 // OCTAGON DEVELOPMENT COMMUNITY
-// Main Script
+// Main Script (Includes Firebase & Reviews)
 // ===============================
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { 
+    getFirestore, collection, addDoc, getDocs, serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+// ===============================
+// FIREBASE CONFIGURATION
+// ===============================
+const firebaseConfig = {
+    apiKey: "AIzaSyCCNbhdNlKhi3HVt4nwvOKuhIV5afCw4tQ",
+    authDomain: "octagon-development-community.firebaseapp.com",
+    projectId: "octagon-development-community",
+    storageBucket: "octagon-development-community.firebasestorage.app",
+    messagingSenderId: "861729221423",
+    appId: "1:861729221423:web:987c3588ccee59282e4fda",
+    measurementId: "G-HN29FG1RSZ"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -330,7 +351,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 role: "Graphic Designer",
                 country: "🇧🇩 (Bangladesh)",
                 experience: "3+ Years.",
-                skills: ["Basic to Intermediate graphics designer  with 3+ years of experience in creating visually appealing designs of banners,posters,billboards etc."]
+                skills: ["Basic to Intermediate graphics designer with 3+ years of experience in creating visually appealing designs of banners,posters,billboards etc."]
             }
         ],
         video: [
@@ -392,5 +413,169 @@ document.addEventListener("DOMContentLoaded", function () {
             renderTeamCategory(category);
         });
     });
+
+    // ===============================
+    // FIREBASE REVIEWS & RATINGS LOGIC
+    // ===============================
+
+    const openRateBtn = document.getElementById("openRateBtn");
+    const openRatingsBtn = document.getElementById("openRatingsBtn");
+    const rateBox = document.getElementById("rateBox");
+    const ratingsBox = document.getElementById("ratingsBox");
+    const starButtons = document.querySelectorAll("#starRating button");
+    const nameInput = document.getElementById("reviewName");
+    const reviewInput = document.getElementById("reviewText");
+    const submitButton = document.getElementById("submitReview");
+    const message = document.getElementById("reviewMessage");
+    const reviewsList = document.getElementById("reviewsList");
+    const averageRating = document.getElementById("averageRating");
+    const averageStars = document.getElementById("averageStars");
+    const reviewCount = document.getElementById("reviewCount");
+
+    let selectedRating = 0;
+
+    // Toggle Panels
+    if (openRateBtn && openRatingsBtn) {
+        openRateBtn.addEventListener("click", () => {
+            if (rateBox) rateBox.classList.toggle("active");
+            if (ratingsBox) ratingsBox.classList.remove("active");
+        });
+
+        openRatingsBtn.addEventListener("click", async () => {
+            if (ratingsBox) ratingsBox.classList.toggle("active");
+            if (rateBox) rateBox.classList.remove("active");
+            if (ratingsBox && ratingsBox.classList.contains("active")) {
+                await loadReviews();
+            }
+        });
+    }
+
+    // Star Selection
+    starButtons.forEach(button => {
+        button.addEventListener("click", () => {
+            selectedRating = Number(button.dataset.rating);
+            starButtons.forEach(star => {
+                const rating = Number(star.dataset.rating);
+                star.classList.toggle("selected", rating <= selectedRating);
+            });
+        });
+    });
+
+    function createStars(rating) {
+        let stars = "";
+        for (let i = 1; i <= 5; i++) {
+            stars += i <= rating ? "★" : "☆";
+        }
+        return stars;
+    }
+
+    function escapeHTML(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Load Reviews
+    async function loadReviews() {
+        if (!reviewsList) return;
+
+        try {
+            reviewsList.innerHTML = `<p class="loading-reviews">Loading ratings...</p>`;
+            const snapshot = await getDocs(collection(db, "reviews"));
+            const reviews = [];
+
+            snapshot.forEach(doc => {
+                reviews.push({ id: doc.id, ...doc.data() });
+            });
+
+            // Sort Newest First
+            reviews.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+
+            reviewsList.innerHTML = "";
+
+            if (reviews.length === 0) {
+                reviewsList.innerHTML = `<p class="loading-reviews">No ratings yet. Be the first one!</p>`;
+                if (averageRating) averageRating.textContent = "0.0";
+                if (averageStars) averageStars.textContent = "☆☆☆☆☆";
+                if (reviewCount) reviewCount.textContent = "0 reviews";
+                return;
+            }
+
+            let totalRating = 0;
+            reviews.forEach(review => {
+                totalRating += Number(review.rating);
+                const card = document.createElement("div");
+                card.className = "review-card";
+                card.innerHTML = `
+                    <div class="review-card-name">${escapeHTML(review.name)}</div>
+                    <div class="review-card-stars">${createStars(Number(review.rating))}</div>
+                    <div class="review-card-text">${escapeHTML(review.review)}</div>
+                `;
+                reviewsList.appendChild(card);
+            });
+
+            const average = totalRating / reviews.length;
+            if (averageRating) averageRating.textContent = average.toFixed(1);
+            if (averageStars) averageStars.textContent = createStars(Math.round(average));
+            if (reviewCount) reviewCount.textContent = `${reviews.length} ${reviews.length === 1 ? "review" : "reviews"}`;
+
+        } catch (error) {
+            console.error("Error loading reviews:", error);
+            reviewsList.innerHTML = `<p class="loading-reviews">Unable to load reviews right now.</p>`;
+        }
+    }
+
+    // Submit Review
+    if (submitButton) {
+        submitButton.addEventListener("click", async () => {
+            const name = nameInput ? nameInput.value.trim() : "";
+            const review = reviewInput ? reviewInput.value.trim() : "";
+
+            if (!name || !selectedRating || !review) {
+                if (message) {
+                    message.textContent = "Please fill in all fields and select a rating.";
+                    message.style.color = "#ff5c5c";
+                }
+                return;
+            }
+
+            try {
+                submitButton.disabled = true;
+                submitButton.textContent = "Submitting...";
+                if (message) message.textContent = "";
+
+                await addDoc(collection(db, "reviews"), {
+                    name: name,
+                    rating: selectedRating,
+                    review: review,
+                    createdAt: serverTimestamp()
+                });
+
+                if (message) {
+                    message.textContent = "Review submitted successfully! ⭐";
+                    message.style.color = "#00ff99";
+                }
+
+                if (nameInput) nameInput.value = "";
+                if (reviewInput) reviewInput.value = "";
+                selectedRating = 0;
+                starButtons.forEach(star => star.classList.remove("selected"));
+
+                await loadReviews();
+            } catch (error) {
+                console.error("Error submitting review:", error);
+                if (message) {
+                    message.textContent = "Something went wrong. Please try again.";
+                    message.style.color = "#ff5c5c";
+                }
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = "Submit Review";
+            }
+        });
+    }
+
+    // Initial Load of Reviews
+    loadReviews();
 
 });
