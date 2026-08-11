@@ -286,12 +286,18 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // LOADER HIDE
+    // ===============================
+    // LOADER HIDE (Fixed Timing Bug)
+    // ===============================
     const loader = document.getElementById("loader");
     if (loader) {
-        window.addEventListener("load", function () {
+        if (document.readyState === "complete") {
             loader.classList.add("hide");
-        });
+        } else {
+            window.addEventListener("load", function () {
+                loader.classList.add("hide");
+            });
+        }
     }
 
     // ===============================
@@ -305,7 +311,6 @@ document.addEventListener("DOMContentLoaded", function () {
     if (viewTeamBtn && teamPopup) {
         viewTeamBtn.addEventListener("click", () => {
             teamPopup.classList.add("active");
-            // Default select CEO category when opened
             renderTeamCategory("ceo");
         });
     }
@@ -414,41 +419,44 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // ===============================
-    // FIREBASE REVIEWS & RATINGS LOGIC
-    // ===============================
+   // ===============================
+// FIREBASE REVIEWS & RATINGS LOGIC
+// ===============================
 
-    const openRateBtn = document.getElementById("openRateBtn");
-    const openRatingsBtn = document.getElementById("openRatingsBtn");
-    const rateBox = document.getElementById("rateBox");
-    const ratingsBox = document.getElementById("ratingsBox");
-    const starButtons = document.querySelectorAll("#starRating button");
-    const nameInput = document.getElementById("reviewName");
-    const reviewInput = document.getElementById("reviewText");
-    const submitButton = document.getElementById("submitReview");
-    const message = document.getElementById("reviewMessage");
-    const reviewsList = document.getElementById("reviewsList");
-    const averageRating = document.getElementById("averageRating");
-    const averageStars = document.getElementById("averageStars");
-    const reviewCount = document.getElementById("reviewCount");
+const openRateBtn = document.getElementById("openRateBtn");
+const openRatingsBtn = document.getElementById("openRatingsBtn");
+const rateBox = document.getElementById("rateBox");
+const ratingsBox = document.getElementById("ratingsBox");
+const starButtons = document.querySelectorAll(".star-rating button"); // CSS ক্লাসের সাথে মেলানো হয়েছে
+const nameInput = document.getElementById("reviewName");
+const reviewInput = document.getElementById("reviewText");
+const submitButton = document.getElementById("submitReview");
+const message = document.getElementById("reviewMessage");
+const reviewsList = document.getElementById("reviewsList");
+const averageRating = document.getElementById("averageRating");
+const averageStars = document.getElementById("averageStars");
+const reviewCount = document.getElementById("reviewCount");
 
-    let selectedRating = 0;
+let selectedRating = 0;
 
-    // Toggle Panels
-    if (openRateBtn && openRatingsBtn) {
-        openRateBtn.addEventListener("click", () => {
-            if (rateBox) rateBox.classList.toggle("active");
-            if (ratingsBox) ratingsBox.classList.remove("active");
-        });
+// Open Rate Box (আলাদা আলাদা চেক করা হয়েছে)
+if (openRateBtn) {
+    openRateBtn.addEventListener("click", () => {
+        if (rateBox) rateBox.classList.toggle("active");
+        if (ratingsBox) ratingsBox.classList.remove("active");
+    });
+}
 
-        openRatingsBtn.addEventListener("click", async () => {
-            if (ratingsBox) ratingsBox.classList.toggle("active");
-            if (rateBox) rateBox.classList.remove("active");
-            if (ratingsBox && ratingsBox.classList.contains("active")) {
-                await loadReviews();
-            }
-        });
-    }
+// Open Ratings Box
+if (openRatingsBtn) {
+    openRatingsBtn.addEventListener("click", async () => {
+        if (ratingsBox) ratingsBox.classList.toggle("active");
+        if (rateBox) rateBox.classList.remove("active");
+        if (ratingsBox && ratingsBox.classList.contains("active")) {
+            await loadReviews();
+        }
+    });
+}
 
     // Star Selection
     starButtons.forEach(button => {
