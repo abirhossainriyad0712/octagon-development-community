@@ -1440,3 +1440,41 @@ html, body {
         padding: 10px !important;
     }
 }
+/* ==========================================
+   RATINGS & REVIEWS POPUP MOBILE FIX
+   ========================================== */
+
+#rateBox,
+#ratingsBox {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    
+    /* স্ক্রিনের সাথে রেসপনসিভ উইডথ */
+    width: 90% !important;
+    max-width: 400px !important;
+    
+    /* স্ক্রিনের বাইরে যাওয়া থেকে আটকানো */
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+    
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    z-index: 10000 !important;
+}
+
+/* ছোট মোবাইলের স্ক্রিনে প্যাডিং অ্যাডজাস্টমেন্ট */
+@media (max-width: 480px) {
+    #rateBox,
+    #ratingsBox {
+        width: 92% !important;
+        padding: 18px 15px !important;
+    }
+
+    #rateBox input,
+    #rateBox textarea {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+}
