@@ -5,7 +5,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { 
-    getFirestore, collection, addDoc, getDocs, serverTimestamp 
+    getFirestore, collection, addDoc, getDocs, doc, updateDoc, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 // ===============================
@@ -419,53 +419,80 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-   // ===============================
-// FIREBASE REVIEWS & RATINGS LOGIC
-// ===============================
+    // ===============================
+    // FIREBASE REVIEWS & RATINGS LOGIC
+    // ===============================
 
-const openRateBtn = document.getElementById("openRateBtn");
-const openRatingsBtn = document.getElementById("openRatingsBtn");
-const rateBox = document.getElementById("rateBox");
-const ratingsBox = document.getElementById("ratingsBox");
-const starButtons = document.querySelectorAll(".star-rating button"); // CSS ক্লাসের সাথে মেলানো হয়েছে
-const nameInput = document.getElementById("reviewName");
-const reviewInput = document.getElementById("reviewText");
-const submitButton = document.getElementById("submitReview");
-const message = document.getElementById("reviewMessage");
-const reviewsList = document.getElementById("reviewsList");
-const averageRating = document.getElementById("averageRating");
-const averageStars = document.getElementById("averageStars");
-const reviewCount = document.getElementById("reviewCount");
+    const openRateBtn = document.getElementById("openRateBtn");
+    const openRatingsBtn = document.getElementById("openRatingsBtn");
+    const rateBox = document.getElementById("rateBox");
+    const ratingsBox = document.getElementById("ratingsBox");
+    const starButtons = document.querySelectorAll(".star-rating button");
+    const nameInput = document.getElementById("reviewName");
+    const reviewInput = document.getElementById("reviewText");
+    const submitButton = document.getElementById("submitReview");
+    const message = document.getElementById("reviewMessage");
+    const reviewsList = document.getElementById("reviewsList");
+    const averageRating = document.getElementById("averageRating");
+    const averageStars = document.getElementById("averageStars");
+    const reviewCount = document.getElementById("reviewCount");
 
-let selectedRating = 0;
+    let selectedRating = 0;
 
-// Open Rate Box (আলাদা আলাদা চেক করা হয়েছে)
-if (openRateBtn) {
-    openRateBtn.addEventListener("click", () => {
-        if (rateBox) rateBox.classList.toggle("active");
-        if (ratingsBox) ratingsBox.classList.remove("active");
-    });
-}
+    // UI Star Update Helper
+    function updateStarUI(rating) {
+        selectedRating = rating;
+        starButtons.forEach(star => {
+            const r = Number(star.dataset.rating);
+            star.classList.toggle("selected", r <= selectedRating);
+        });
+    }
 
-// Open Ratings Box
-if (openRatingsBtn) {
-    openRatingsBtn.addEventListener("click", async () => {
-        if (ratingsBox) ratingsBox.classList.toggle("active");
-        if (rateBox) rateBox.classList.remove("active");
-        if (ratingsBox && ratingsBox.classList.contains("active")) {
-            await loadReviews();
+    // --- CHECK USER RATING STATUS & PRE-FILL IF EDITING ---
+    function checkRatingStatus() {
+        const userReviewData = localStorage.getItem("userReview");
+
+        if (userReviewData && openRateBtn) {
+            const parsedData = JSON.parse(userReviewData);
+            openRateBtn.textContent = "✏️ Change Review";
+            
+            // পূর্বের দেওয়া ডেটা ফর্মে প্রি-ফিল (Pre-fill) করে রাখা
+            if (nameInput) nameInput.value = parsedData.name || "";
+            if (reviewInput) reviewInput.value = parsedData.review || "";
+            if (parsedData.rating) updateStarUI(Number(parsedData.rating));
+            if (submitButton) submitButton.textContent = "Update Review";
+        } else if (openRateBtn) {
+            openRateBtn.textContent = "⭐ Rate Us";
+            if (submitButton) submitButton.textContent = "Submit Review";
         }
-    });
-}
+    }
 
-    // Star Selection
+    // Page Load এর সময় চেক করা
+    checkRatingStatus();
+
+    // Open Rate Box
+    if (openRateBtn) {
+        openRateBtn.addEventListener("click", () => {
+            if (rateBox) rateBox.classList.toggle("active");
+            if (ratingsBox) ratingsBox.classList.remove("active");
+        });
+    }
+
+    // Open Ratings Box
+    if (openRatingsBtn) {
+        openRatingsBtn.addEventListener("click", async () => {
+            if (ratingsBox) ratingsBox.classList.toggle("active");
+            if (rateBox) rateBox.classList.remove("active");
+            if (ratingsBox && ratingsBox.classList.contains("active")) {
+                await loadReviews();
+            }
+        });
+    }
+
+    // Star Selection Event
     starButtons.forEach(button => {
         button.addEventListener("click", () => {
-            selectedRating = Number(button.dataset.rating);
-            starButtons.forEach(star => {
-                const rating = Number(star.dataset.rating);
-                star.classList.toggle("selected", rating <= selectedRating);
-            });
+            updateStarUI(Number(button.dataset.rating));
         });
     });
 
@@ -533,7 +560,7 @@ if (openRatingsBtn) {
         }
     }
 
-    // Submit Review
+    // Submit / Update Review
     if (submitButton) {
         submitButton.addEventListener("click", async () => {
             const name = nameInput ? nameInput.value.trim() : "";
@@ -547,38 +574,67 @@ if (openRatingsBtn) {
                 return;
             }
 
+            const existingReview = localStorage.getItem("userReview");
+            const parsedReview = existingReview ? JSON.parse(existingReview) : null;
+
             try {
                 submitButton.disabled = true;
-                submitButton.textContent = "Submitting...";
+                submitButton.textContent = parsedReview ? "Updating..." : "Submitting...";
                 if (message) message.textContent = "";
 
-                await addDoc(collection(db, "reviews"), {
+                let docId = parsedReview ? parsedReview.id : null;
+
+                if (docId) {
+                    // পূর্বে সেভ করা রিভিউ আপডেট (Update) করা
+                    const reviewRef = doc(db, "reviews", docId);
+                    await updateDoc(reviewRef, {
+                        name: name,
+                        rating: selectedRating,
+                        review: review,
+                        updatedAt: serverTimestamp()
+                    });
+                } else {
+                    // নতুন রিভিউ তৈরি (Add) করা
+                    const docRef = await addDoc(collection(db, "reviews"), {
+                        name: name,
+                        rating: selectedRating,
+                        review: review,
+                        createdAt: serverTimestamp()
+                    });
+                    docId = docRef.id;
+                }
+
+                // ব্রাউজারে ইউজার ডাটা এবং Doc ID আপডেট করা
+                localStorage.setItem("userReview", JSON.stringify({
+                    id: docId,
                     name: name,
                     rating: selectedRating,
-                    review: review,
-                    createdAt: serverTimestamp()
-                });
+                    review: review
+                }));
 
                 if (message) {
-                    message.textContent = "Review submitted successfully! ⭐";
+                    message.textContent = parsedReview ? "Review updated successfully! ⭐" : "Review submitted successfully! ⭐";
                     message.style.color = "#00ff99";
                 }
 
-                if (nameInput) nameInput.value = "";
-                if (reviewInput) reviewInput.value = "";
-                selectedRating = 0;
-                starButtons.forEach(star => star.classList.remove("selected"));
-
                 await loadReviews();
+                checkRatingStatus();
+
+                // ১.৫ সেকেন্ড পর রিভিউ বক্স বন্ধ হবে
+                setTimeout(() => {
+                    if (rateBox) rateBox.classList.remove("active");
+                    if (message) message.textContent = "";
+                }, 1500);
+
             } catch (error) {
-                console.error("Error submitting review:", error);
+                console.error("Error saving review:", error);
                 if (message) {
                     message.textContent = "Something went wrong. Please try again.";
                     message.style.color = "#ff5c5c";
                 }
             } finally {
                 submitButton.disabled = false;
-                submitButton.textContent = "Submit Review";
+                checkRatingStatus();
             }
         });
     }
