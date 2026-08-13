@@ -5,7 +5,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { 
-    getFirestore, collection, addDoc, getDocs, doc, updateDoc, serverTimestamp 
+    getFirestore, collection, addDoc, getDocs, doc, updateDoc, serverTimestamp, query, orderBy, limit 
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 // ===============================
@@ -33,11 +33,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const popupTitle = document.getElementById("popupTitle");
     const serviceType = document.getElementById("serviceType");
     const description = document.getElementById("projectDescription");
+    const teamPopup = document.getElementById("teamPopup");
+    const rateBox = document.getElementById("rateBox");
+    const ratingsBox = document.getElementById("ratingsBox");
 
     // ===============================
     // SERVICE CARDS
     // ===============================
-
     const serviceCards = document.querySelectorAll(".serviceCard");
 
     serviceCards.forEach(function (card) {
@@ -53,23 +55,18 @@ document.addEventListener("DOMContentLoaded", function () {
                     case "3D Modeling":
                         description.placeholder = "Describe your 3D modeling project in detail...";
                         break;
-
                     case "Video Editing":
                         description.placeholder = "Describe your video editing requirements...";
                         break;
-
                     case "Photo Editing":
                         description.placeholder = "Describe your photo editing requirements...";
                         break;
-
                     case "Graphic Design":
                         description.placeholder = "Describe your graphic design requirements...";
                         break;
-
                     case "Custom Project":
                         description.placeholder = "Describe your custom project in detail...";
                         break;
-
                     default:
                         description.placeholder = "Describe your project in detail...";
                         break;
@@ -81,12 +78,10 @@ document.addEventListener("DOMContentLoaded", function () {
     // ===============================
     // FAQ ACCORDION
     // ===============================
-
     const faqItems = document.querySelectorAll(".faqItem");
 
     faqItems.forEach((item) => {
         const question = item.querySelector(".faqQuestion");
-
         if (question) {
             question.addEventListener("click", () => {
                 faqItems.forEach((faq) => {
@@ -94,7 +89,6 @@ document.addEventListener("DOMContentLoaded", function () {
                         faq.classList.remove("active");
                     }
                 });
-
                 item.classList.toggle("active");
             });
         }
@@ -103,7 +97,6 @@ document.addEventListener("DOMContentLoaded", function () {
     // ===============================        
     // SCROLL ANIMATION
     // ===============================
-
     const hiddenElements = document.querySelectorAll(".hidden");
 
     const observer = new IntersectionObserver((entries) => {
@@ -112,18 +105,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 entry.target.classList.add("show");
             }
         });
-    }, {
-        threshold: 0.15
-    });
+    }, { threshold: 0.15 });
 
-    hiddenElements.forEach((element) => {
-        observer.observe(element);
-    });
+    hiddenElements.forEach((element) => observer.observe(element));
 
     // ===============================
-    // MOUSE GLOW
+    // MOUSE GLOW & CUSTOM CURSOR
     // ===============================
-
     const glow = document.querySelector(".cursorGlow");
     if (glow) {
         window.addEventListener("mousemove", (e) => {
@@ -132,12 +120,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // ===============================
-    // CUSTOM CURSOR
-    // ===============================
-
     const cursor = document.querySelector(".customCursor");
-
     if (cursor) {
         window.addEventListener("mousemove", (e) => {
             cursor.style.left = e.clientX + "px";
@@ -145,24 +128,16 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         const hoverItems = document.querySelectorAll("a, button, .card, .faqQuestion");
-
         hoverItems.forEach(item => {
-            item.addEventListener("mouseenter", () => {
-                cursor.classList.add("hover");
-            });
-
-            item.addEventListener("mouseleave", () => {
-                cursor.classList.remove("hover");
-            });
+            item.addEventListener("mouseenter", () => cursor.classList.add("hover"));
+            item.addEventListener("mouseleave", () => cursor.classList.remove("hover"));
         });
     }
 
     // ===============================
     // APPLY NOW BUTTON
     // ===============================
-
     const applyBtn = document.getElementById("applyNow");
-
     if (applyBtn) {
         applyBtn.addEventListener("click", function () {
             if (popup) popup.style.display = "flex";
@@ -173,46 +148,47 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ===============================
-    // CLOSE BUTTONS
+    // CLOSE & MODAL OVERLAY HANDLERS
     // ===============================
-
     if (closePopup) {
-        closePopup.addEventListener("click", function () {
+        closePopup.addEventListener("click", () => {
             if (popup) popup.style.display = "none";
         });
     }
 
-    // ===============================
-    // CLICK OUTSIDE TO CLOSE
-    // ===============================
+    const closeRateBox = document.getElementById("closeRateBox");
+    const closeRatingsBox = document.getElementById("closeRatingsBox");
+
+    if (closeRateBox && rateBox) {
+        closeRateBox.addEventListener("click", () => rateBox.classList.remove("active"));
+    }
+
+    if (closeRatingsBox && ratingsBox) {
+        closeRatingsBox.addEventListener("click", () => ratingsBox.classList.remove("active"));
+    }
 
     window.addEventListener("click", function (e) {
-        if (popup && e.target === popup) {
-            popup.style.display = "none";
-        }
+        if (popup && e.target === popup) popup.style.display = "none";
+        if (teamPopup && e.target === teamPopup) teamPopup.classList.remove("active");
     });
 
-    // ===============================
-    // ESC KEY TO CLOSE
-    // ===============================
-
+    // Unified ESC Key Event Listener
     document.addEventListener("keydown", function (e) {
         if (e.key === "Escape") {
             if (popup) popup.style.display = "none";
-            const teamPopup = document.getElementById("teamPopup");
             if (teamPopup) teamPopup.classList.remove("active");
+            if (rateBox) rateBox.classList.remove("active");
+            if (ratingsBox) ratingsBox.classList.remove("active");
         }
     });
 
     // ===============================
     // FORM SUBMIT (EMAILJS)
     // ===============================
-
     if (form) {
         form.addEventListener("submit", function (e) {
             e.preventDefault();
 
-            // Honeypot Spam Protection
             const honeypot = document.getElementById("website");
             if (honeypot && honeypot.value.trim() !== "") {
                 alert("Spam detected.");
@@ -220,7 +196,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             const lastSubmit = localStorage.getItem("lastSubmit");
-
             if (lastSubmit) {
                 const secondsPassed = (Date.now() - Number(lastSubmit)) / 1000;
                 if (secondsPassed < 30) {
@@ -255,7 +230,6 @@ document.addEventListener("DOMContentLoaded", function () {
     // ===============================
     // SCROLL PROGRESS & BACK TO TOP
     // ===============================
-
     const progressBar = document.getElementById("progressBar");
     const scrollTopBtn = document.getElementById("scrollTopBtn");
 
@@ -269,25 +243,18 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (scrollTopBtn) {
-            if (scrollTop > 300) {
-                scrollTopBtn.classList.add("show");
-            } else {
-                scrollTopBtn.classList.remove("show");
-            }
+            scrollTopBtn.classList.toggle("show", scrollTop > 300);
         }
     });
 
     if (scrollTopBtn) {
         scrollTopBtn.addEventListener("click", function () {
-            window.scrollTo({
-                top: 0,
-                behavior: "smooth"
-            });
+            window.scrollTo({ top: 0, behavior: "smooth" });
         });
     }
 
     // ===============================
-    // LOADER HIDE (Fixed Timing Bug)
+    // LOADER HIDE
     // ===============================
     const loader = document.getElementById("loader");
     if (loader) {
@@ -301,11 +268,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ===============================
-    // TEAM POPUP LOGIC
+    // TEAM POPUP & DATABASE LOGIC
     // ===============================
-
     const viewTeamBtn = document.getElementById("viewTeamBtn");
-    const teamPopup = document.getElementById("teamPopup");
     const closeTeamPopup = document.getElementById("closeTeamPopup") || document.querySelector("#teamPopup .closePopup");
 
     if (viewTeamBtn && teamPopup) {
@@ -316,20 +281,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (closeTeamPopup && teamPopup) {
-        closeTeamPopup.addEventListener("click", () => {
-            teamPopup.classList.remove("active");
-        });
+        closeTeamPopup.addEventListener("click", () => teamPopup.classList.remove("active"));
     }
-
-    window.addEventListener("click", (e) => {
-        if (teamPopup && e.target === teamPopup) {
-            teamPopup.classList.remove("active");
-        }
-    });
-
-    // ===============================
-    // TEAM DATABASE & RENDER
-    // ===============================
 
     const teamMembers = {
         ceo: [
@@ -414,19 +367,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.querySelectorAll(".teamCategory").forEach(button => {
         button.addEventListener("click", () => {
-            const category = button.dataset.category;
-            renderTeamCategory(category);
+            renderTeamCategory(button.dataset.category);
         });
     });
 
     // ===============================
     // FIREBASE REVIEWS & RATINGS LOGIC
     // ===============================
-
     const openRateBtn = document.getElementById("openRateBtn");
     const openRatingsBtn = document.getElementById("openRatingsBtn");
-    const rateBox = document.getElementById("rateBox");
-    const ratingsBox = document.getElementById("ratingsBox");
     const starButtons = document.querySelectorAll(".star-rating button");
     const nameInput = document.getElementById("reviewName");
     const reviewInput = document.getElementById("reviewText");
@@ -439,7 +388,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let selectedRating = 0;
 
-    // UI Star Update Helper
     function updateStarUI(rating) {
         selectedRating = rating;
         starButtons.forEach(star => {
@@ -448,15 +396,11 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // --- CHECK USER RATING STATUS & PRE-FILL IF EDITING ---
     function checkRatingStatus() {
         const userReviewData = localStorage.getItem("userReview");
-
         if (userReviewData && openRateBtn) {
             const parsedData = JSON.parse(userReviewData);
             openRateBtn.textContent = "✏️ Change Review";
-            
-            // পূর্বের দেওয়া ডেটা ফর্মে প্রি-ফিল (Pre-fill) করে রাখা
             if (nameInput) nameInput.value = parsedData.name || "";
             if (reviewInput) reviewInput.value = parsedData.review || "";
             if (parsedData.rating) updateStarUI(Number(parsedData.rating));
@@ -467,10 +411,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Page Load এর সময় চেক করা
     checkRatingStatus();
 
-    // Open Rate Box
     if (openRateBtn) {
         openRateBtn.addEventListener("click", () => {
             if (rateBox) rateBox.classList.toggle("active");
@@ -478,7 +420,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Open Ratings Box
     if (openRatingsBtn) {
         openRatingsBtn.addEventListener("click", async () => {
             if (ratingsBox) ratingsBox.classList.toggle("active");
@@ -489,7 +430,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Star Selection Event
     starButtons.forEach(button => {
         button.addEventListener("click", () => {
             updateStarUI(Number(button.dataset.rating));
@@ -510,21 +450,19 @@ document.addEventListener("DOMContentLoaded", function () {
         return div.innerHTML;
     }
 
-    // Load Reviews
     async function loadReviews() {
         if (!reviewsList) return;
 
         try {
             reviewsList.innerHTML = `<p class="loading-reviews">Loading ratings...</p>`;
-            const snapshot = await getDocs(collection(db, "reviews"));
+            
+            const q = query(collection(db, "reviews"), orderBy("createdAt", "desc"), limit(50));
+            const snapshot = await getDocs(q);
             const reviews = [];
 
             snapshot.forEach(doc => {
                 reviews.push({ id: doc.id, ...doc.data() });
             });
-
-            // Sort Newest First
-            reviews.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
 
             reviewsList.innerHTML = "";
 
@@ -560,7 +498,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Submit / Update Review
     if (submitButton) {
         submitButton.addEventListener("click", async () => {
             const name = nameInput ? nameInput.value.trim() : "";
@@ -585,7 +522,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 let docId = parsedReview ? parsedReview.id : null;
 
                 if (docId) {
-                    // পূর্বে সেভ করা রিভিউ আপডেট (Update) করা
                     const reviewRef = doc(db, "reviews", docId);
                     await updateDoc(reviewRef, {
                         name: name,
@@ -594,7 +530,6 @@ document.addEventListener("DOMContentLoaded", function () {
                         updatedAt: serverTimestamp()
                     });
                 } else {
-                    // নতুন রিভিউ তৈরি (Add) করা
                     const docRef = await addDoc(collection(db, "reviews"), {
                         name: name,
                         rating: selectedRating,
@@ -604,7 +539,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     docId = docRef.id;
                 }
 
-                // ব্রাউজারে ইউজার ডাটা এবং Doc ID আপডেট করা
                 localStorage.setItem("userReview", JSON.stringify({
                     id: docId,
                     name: name,
@@ -620,7 +554,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 await loadReviews();
                 checkRatingStatus();
 
-                // ১.৫ সেকেন্ড পর রিভিউ বক্স বন্ধ হবে
                 setTimeout(() => {
                     if (rateBox) rateBox.classList.remove("active");
                     if (message) message.textContent = "";
@@ -639,7 +572,5 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Initial Load of Reviews
     loadReviews();
-
 });

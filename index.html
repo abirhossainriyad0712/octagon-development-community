@@ -24,7 +24,7 @@
     <!-- Stylesheets -->
     <link rel="stylesheet" href="css/style.css">
 
-    <!-- ================= SEO START ================= -->
+    <!-- SEO -->
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://abirhossainriyad0712.github.io/octagon-development-community/">
 
@@ -61,7 +61,6 @@
       ]
     }
     </script>
-    <!-- ================= SEO END ================= -->
 </head>
 
 <body>
@@ -81,7 +80,7 @@
     <div class="cursorGlow"></div>
     <div class="customCursor"></div>
 
-    <!-- ================= NAVBAR ================= -->
+    <!-- NAVBAR -->
     <header>
         <div class="logo">
             <img src="assets/images/octagon.png" alt="Octagon Logo">
@@ -96,7 +95,7 @@
         </nav>
     </header>
 
-    <!-- ================= HERO ================= -->
+    <!-- HERO SECTION -->
     <section class="hero hidden" id="home">
         <div class="overlay"></div>
         <div class="content">
@@ -119,7 +118,7 @@
         </div>
     </section>
 
-    <!-- ================= ABOUT ================= -->
+    <!-- ABOUT SECTION -->
     <section class="about hidden" id="about">
         <h2>About Us</h2>
         <p>
@@ -127,7 +126,7 @@
         </p>
     </section>
 
-    <!-- ================= SERVICES ================= -->
+    <!-- SERVICES SECTION -->
     <section class="services hidden" id="services">
         <h2>Our Services</h2>
 
@@ -159,7 +158,7 @@
         </div>
     </section>
 
-    <!-- ================= TEAM ================= -->
+    <!-- TEAM SECTION -->
     <section class="teamSection hidden">
         <h2>Meet Our Professionals</h2>
         <p>
@@ -170,7 +169,7 @@
         </button>
     </section>
 
-    <!-- ================= FAQ ================= -->
+    <!-- FAQ SECTION -->
     <section class="faq hidden" id="faq">
         <h2>Frequently Asked Questions</h2>
 
@@ -227,7 +226,7 @@
         </div>
     </section>
 
-    <!-- ================= CAREERS ================= -->
+    <!-- CAREERS SECTION -->
     <section class="careers hidden" id="careers">
         <h2>Join Our Team</h2>
         <p>
@@ -236,7 +235,7 @@
         <button class="joinBtn" id="applyNow">Apply Now</button>
     </section>
 
-    <!-- ================= RATING & REVIEWS ================= -->
+    <!-- RATING & REVIEWS SECTION -->
     <section class="reviews-section" id="reviews">
         <h2>What People Say</h2>
         <p class="reviews-subtitle">
@@ -254,9 +253,11 @@
             </button>
         </div>
 
-        <!-- Rate Box -->
-        <div id="rateBox" class="review-panel">
-            <h3>Rate Our Service</h3>
+        <!-- Single Rate Box Popup -->
+        <div id="rateBox" class="popup-box review-panel">
+            <button type="button" class="close-rating-btn" id="closeRateBox" aria-label="Close">&times;</button>
+            
+            <h3>Leave a Review</h3>
 
             <input type="text" id="reviewName" placeholder="Your Name" maxlength="50">
 
@@ -277,8 +278,10 @@
             <p id="reviewMessage"></p>
         </div>
 
-        <!-- Ratings Box -->
-        <div id="ratingsBox" class="review-panel">
+        <!-- Single Ratings Box Popup -->
+        <div id="ratingsBox" class="popup-box review-panel">
+            <button type="button" class="close-rating-btn" id="closeRatingsBox" aria-label="Close">&times;</button>
+            
             <h3>Customer Ratings</h3>
 
             <div class="rating-summary">
@@ -293,7 +296,7 @@
         </div>
     </section>
 
-    <!-- ================= FOOTER ================= -->
+    <!-- FOOTER -->
     <footer id="contact">
         <h3>Octagon Development Community</h3>
         <p>Email: octagondevelopmentcommunity@gmail.com</p>
@@ -311,7 +314,7 @@
         </p>
     </footer>
 
-    <!-- ================= SERVICE REQUEST POPUP ================= -->
+    <!-- SERVICE REQUEST POPUP -->
     <div class="popup" id="servicePopup">
         <div class="popupContent">
             <button type="button" class="closePopup" aria-label="Close popup">&times;</button>
@@ -343,10 +346,10 @@
         </div>
     </div>
 
-    <!-- ================= TEAM POPUP ================= -->
+    <!-- TEAM POPUP -->
     <div class="teamPopup" id="teamPopup">
         <div class="teamPopupContent">
-            <span class="closePopup">✕</span>
+            <button type="button" class="closePopup" aria-label="Close popup">✕</button>
             <h2>Our Professionals</h2>
 
             <div class="teamCategories">
@@ -362,7 +365,7 @@
         </div>
     </div>
 
-    <!-- ================= JAVASCRIPT ================= -->
+    <!-- JAVASCRIPT -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script>
         emailjs.init({

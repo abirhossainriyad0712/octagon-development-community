@@ -1478,3 +1478,142 @@ html, body {
         box-sizing: border-box !important;
     }
 }
+/* ==========================================
+   RATING POPUP CLOSE BUTTON STYLING
+   ========================================== */
+
+#rateBox, #ratingsBox {
+    position: relative; /* ক্লোজ বাটনকে পজিশন করার জন্য */
+}
+
+.close-rating-btn {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 5px;
+    transition: color 0.2s ease, transform 0.2s ease;
+    z-index: 10;
+}
+
+.close-rating-btn:hover {
+    color: #ff5c5c; /* হোভার করলে লাল হবে */
+    transform: scale(1.15);
+}
+/* ==========================================
+   NEON BLUR POPUP STYLES
+   ========================================== */
+
+/* Review Panel, Service Popup & Team Popup Container */
+.popup-box, 
+.popupContent, 
+.teamPopupContent {
+    /* Transparent Background with Blur */
+    background: rgba(15, 15, 28, 0.75) !important; /* ডার্ক ট্রান্সপারেন্ট ব্যাকগ্রাউন্ড */
+    backdrop-filter: blur(16px) saturate(180%); /* গ্লাস ব্লার ইফেক্ট */
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    
+    /* Neon Border */
+    border: 1px solid rgba(0, 240, 255, 0.5) !important; /* নিয়ন সায়ান বর্ডার */
+    border-radius: 16px;
+    
+    /* Neon Glow Effect */
+    box-shadow: 0 0 25px rgba(0, 240, 255, 0.35), 
+                inset 0 0 15px rgba(0, 240, 255, 0.15) !important;
+    
+    color: #ffffff;
+    padding: 30px;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Hover করলে Neon Glow আরো ব্রাইট হবে */
+.popup-box:hover, 
+.popupContent:hover, 
+.teamPopupContent:hover {
+    border-color: rgba(0, 240, 255, 0.8) !important;
+    box-shadow: 0 0 35px rgba(0, 240, 255, 0.5), 
+                inset 0 0 20px rgba(0, 240, 255, 0.2) !important;
+}
+
+/* Input Fields inside Neon Popup */
+.popup-box input, 
+.popup-box textarea, 
+.popupContent input, 
+.popupContent select, 
+.popupContent textarea {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(0, 240, 255, 0.3) !important;
+    color: #fff !important;
+    border-radius: 8px;
+    backdrop-filter: blur(5px);
+}
+
+.popup-box input:focus, 
+.popup-box textarea:focus, 
+.popupContent input:focus, 
+.popupContent select:focus, 
+.popupContent textarea:focus {
+    outline: none;
+    border-color: #00f0ff !important;
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.5) !important;
+}
+/* ==========================================
+   FIXED / STICKY CLOSE BUTTON FOR POPUPS
+   ========================================== */
+
+/* পপআপ কন্টেইনার পজিশনিং */
+.popup-box, 
+.popupContent, 
+.teamPopupContent {
+    position: relative !important;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+/* ক্রস/ক্লোজ বাটন ফিক্সড পজিশনিং */
+.close-rating-btn, 
+.closePopup {
+    position: sticky !important;
+    top: 0px;
+    float: right;
+    z-index: 999;
+    
+    /* সাইজ ও স্টাইলিং */
+    width: 36px;
+    height: 36px;
+    background: rgba(15, 15, 28, 0.85) !important;
+    border: 1px solid rgba(0, 240, 255, 0.5) !important;
+    color: #00f0ff !important;
+    border-radius: 50%;
+    
+    /* টেক্সট পজিশন সেন্টার করা */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    
+    /* গ্লো ইফেক্ট */
+    backdrop-filter: blur(8px);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+    transition: all 0.2s ease-in-out;
+    
+    /* মার্জিন এডজাস্টমেন্ট */
+    margin-bottom: -36px;
+}
+
+/* হভার ইফেক্ট */
+.close-rating-btn:hover, 
+.closePopup:hover {
+    background: #00f0ff !important;
+    color: #0d0d1a !important;
+    box-shadow: 0 0 18px rgba(0, 240, 255, 0.8);
+    transform: scale(1.08);
+}
