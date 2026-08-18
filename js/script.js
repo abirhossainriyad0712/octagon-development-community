@@ -2,7 +2,79 @@
 // OCTAGON DEVELOPMENT COMMUNITY
 // Main Script (Includes Firebase & Reviews)
 // ===============================
+// ===============================
+// OCTAGON DEVELOPMENT COMMUNITY
+// THEME SWITCHER
+// ===============================
 
+(function () {
+
+    const themeButtons = document.querySelectorAll(".theme-btn");
+
+    if (!themeButtons.length) return;
+
+    // ===============================
+    // LOAD SAVED THEME
+    // ===============================
+
+    const savedTheme = localStorage.getItem("octagonTheme") || "dark";
+
+    document.body.setAttribute("data-theme", savedTheme);
+
+    // ===============================
+    // UPDATE ACTIVE BUTTON
+    // ===============================
+
+    function updateThemeButtons(theme) {
+
+        themeButtons.forEach(button => {
+
+            const buttonTheme = button.dataset.theme;
+
+            button.classList.toggle(
+                "active",
+                buttonTheme === theme
+            );
+
+        });
+
+    }
+
+    // Set initial active button
+    updateThemeButtons(savedTheme);
+
+    // ===============================
+    // THEME BUTTON CLICK
+    // ===============================
+
+    themeButtons.forEach(button => {
+
+        button.addEventListener("click", function () {
+
+            const selectedTheme = this.dataset.theme;
+
+            if (!selectedTheme) return;
+
+            // Change theme
+            document.body.setAttribute(
+                "data-theme",
+                selectedTheme
+            );
+
+            // Save theme
+            localStorage.setItem(
+                "octagonTheme",
+                selectedTheme
+            );
+
+            // Update active button
+            updateThemeButtons(selectedTheme);
+
+        });
+
+    });
+
+})();
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { 
     getFirestore, collection, addDoc, getDocs, doc, updateDoc, serverTimestamp, query, orderBy, limit 
